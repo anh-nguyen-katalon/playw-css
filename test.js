@@ -64,6 +64,7 @@ function getElementFeatures(element) {
       features.selector = selector;
     }
   } catch (error) {
+    console.log(error)
   }
 
   for (const child of element.children) {
