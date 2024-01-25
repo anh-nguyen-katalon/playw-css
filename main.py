@@ -38,9 +38,11 @@ with sync_playwright() as p:
     discovered_urls.add(home_page)
     while not q.empty() and num_visited < 5:
         url = q.get()
-        num_visited += 1
         page.goto(url, wait_until="networkidle")
         print (url)
+        num_visited += 1
+
+        # get page features
         page.add_script_tag(content=playw_css_script)
         pf = page.evaluate(get_page_features_script + "getPageFeatures();")
         
