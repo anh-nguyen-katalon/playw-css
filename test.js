@@ -60,11 +60,11 @@ function getElementFeatures(element) {
   };
   try {
     const selector = injectedScript.generateSelector(element, { timeout: 1000 });
-    if (selector) {
+    if (selector && selector.includes("role")) {
       features.selector = selector;
     }
   } catch (error) {
-    console.log(error)
+    console.log(`Failed to generate selector for element: ${element.outerHTML} - ${error.message}`);
   }
 
   for (const child of element.children) {
@@ -73,6 +73,8 @@ function getElementFeatures(element) {
   return features;
 }
 
-// Get the features of the body element
-let bodyElem = document.querySelector("body");
-let features = getElementFeatures(bodyElem);
+// Get page features
+function getPageFeatures() {
+  const bodyElem = document.querySelector("body");
+  return getElementFeatures(bodyElem);
+}
