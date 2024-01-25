@@ -19,10 +19,10 @@ with open("bundle.js", "r") as f:
     playw_css_script = f.read()
 
 with open("test.js", "r") as f:
-    get_page_features_script = f.read()
+    role_tree_script = f.read()
 
 print ("bundle.js script:", playw_css_script[:100])
-print ("test.js script", get_page_features_script[:100])
+print ("test.js script", role_tree_script[:100])
 
 with sync_playwright() as p:
     browser = p.chromium.launch()
@@ -42,16 +42,16 @@ with sync_playwright() as p:
         print (url)
         num_visited += 1
 
-        # get page features
+        # get role tree
         page.add_script_tag(content=playw_css_script)
-        pf = page.evaluate(get_page_features_script + "getPageFeatures();")
+        role_tree = page.evaluate(role_tree_script + "getRoleTree();")
         
-        # write pf to file
+        # write role tree to file
         dir_path = url.replace(home_page, "")
         dir_path = re.sub(r'^/+|/+$', '', dir_path)
         os.makedirs(os.path.join("output", dir_path), exist_ok=True)
         with open(f"output/{dir_path}/features.json", "w") as f:
-            f.write(json.dumps(pf, indent=2))
+            f.write(json.dumps(role_tree, indent=2))
 
         # discover child urls
         for a in page.locator("a").all():

@@ -1,6 +1,3 @@
-// Paste the script content of bundle.js to the page's console.
-// Page example: https://flsitjam.discoverflow.lla.digital/jamaica/mobile/plans/postpaid
-
 // create time tracking engines
 function createEngineWithTimeTracking(engine, maxEndTime) {
   return {
@@ -73,8 +70,8 @@ function getElementFeatures(element) {
   return features;
 }
 
-// Get page features
-function getPageFeatures() {
+// Get role tree of the page
+function getRoleTree() {
   const bodyElem = document.querySelector("body");
   return getElementFeatures(bodyElem);
 }
