@@ -4,6 +4,17 @@ import re
 import os
 import json
 
+def preprocess_href(href, home_page):
+    # turn relative urls into absolute urls
+    if href.startswith("/"):
+        href = home_page[:-1] + href
+    # remove query parameters
+    query_index = href.find("?")
+    href = href[:query_index] if query_index != -1 else href
+    # remove trailing slash
+    href = re.sub(r'/+$', '', href)
+    return href
+
 with open("bundle.js", "r") as f:
     playw_css_script = f.read()
 
@@ -25,7 +36,7 @@ with sync_playwright() as p:
     q.put(home_page)
 
     discovered_urls.add(home_page)
-    while not q.empty() and num_visited < 3:
+    while not q.empty() and num_visited < 5:
         url = q.get()
         num_visited += 1
         page.goto(url, wait_until="networkidle")
@@ -34,7 +45,6 @@ with sync_playwright() as p:
         pf = page.evaluate(get_page_features_script + "getPageFeatures();")
         
         # write pf to file
-        # print (pf)
         dir_path = url.replace(home_page, "")
         dir_path = re.sub(r'^/+|/+$', '', dir_path)
         os.makedirs(os.path.join("output", dir_path), exist_ok=True)
@@ -45,14 +55,7 @@ with sync_playwright() as p:
         for a in page.locator("a").all():
             href = a.get_attribute("href")
             if href is not None:
-                # turn relative urls into absolute urls
-                if href.startswith("/"):
-                    href = home_page[:-1] + href
-                # remove query parameters
-                query_index = href.find("?")
-                href = href[:query_index] if query_index != -1 else href
-                # remove trailing slash
-                href = re.sub(r'/+$', '', href)
+                href = preprocess_href(href, home_page)
                 if href.startswith(home_page) and href not in discovered_urls:
                     discovered_urls.add(href)
                     q.put(href)
