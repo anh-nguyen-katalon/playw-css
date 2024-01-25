@@ -50,7 +50,7 @@ with sync_playwright() as p:
         dir_path = url.replace(home_page, "")
         dir_path = re.sub(r'^/+|/+$', '', dir_path)
         os.makedirs(os.path.join("output", dir_path), exist_ok=True)
-        with open(f"output/{dir_path}/features.json", "w") as f:
+        with open(f"output/{dir_path}/role_tree.json", "w") as f:
             f.write(json.dumps(role_tree, indent=2))
 
         # discover child urls
