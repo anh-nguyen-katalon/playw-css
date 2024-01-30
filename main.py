@@ -32,11 +32,9 @@ with sync_playwright() as p:
     browser = p.chromium.launch()
     page = browser.new_page()
 
-    ### BEGIN HARDCODE ###
-    # HARDCODE only for Katalon.com: go to home page and accept cookies
-    page.goto(HOME_PAGE, wait_until="networkidle")
-    page.get_by_role("button", name="Accept All Cookies").click()
-    ### END HARDCODE ###
+    # # HARDCODE only for Katalon.com: go to home page and accept cookies before crawling
+    # page.goto(HOME_PAGE, wait_until="networkidle")
+    # page.get_by_role("button", name="Accept All Cookies").click()
 
     discovered_urls = set()
     num_visited = 0

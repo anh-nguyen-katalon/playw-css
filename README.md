@@ -34,16 +34,6 @@ MAX_NUM_PAGES = 100
 
 `MAX_NUM_PAGES`: the maximum number of pages to crawl
 
-
-Note: The section of code below is only hardcoded for Katalon.com to Accept cookies before crawling.
-```
-### BEGIN HARDCODE ###
-# HARDCODE only for Katalon.com: go to home page and accept cookies
-page.goto(HOME_PAGE, wait_until="networkidle")
-page.get_by_role("button", name="Accept All Cookies").click()
-### END HARDCODE ###
-```
-
 -  Run the script:
 ```
 python main.py
