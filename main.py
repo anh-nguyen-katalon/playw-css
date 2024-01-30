@@ -49,28 +49,25 @@ with sync_playwright() as p:
             num_visited += 1
             print (num_visited)
             print (url)
+
+            # go to page
+            print ("Going to page")
+            page.goto(url, wait_until="networkidle")
+
+            # get role tree
+            page.add_script_tag(content=playw_css_script)
+            print ("Getting role tree")
+            role_tree = page.evaluate(role_tree_script + "getRoleTree();")
         
-            # file path to save role tree
+            # create file path to save role tree
             dir_path = re.sub(r'^https?://', '', url) # remove protocol
             dir_path = re.sub(r'/+$', '', dir_path) # remove trailing slash
             file_path = f"output/{dir_path}/role_tree.json"
-            
-            # if role tree has never been saved, go to page and get role tree
-            if not os.path.exists(file_path):
-                print ("Going to page")
-                page.goto(url, wait_until="networkidle")
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-                # get role tree
-                page.add_script_tag(content=playw_css_script)
-                print ("Getting role tree")
-                role_tree = page.evaluate(role_tree_script + "getRoleTree();")
-            
-                # write role tree to file
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                with open(file_path, "w") as f:
-                    f.write(json.dumps(role_tree, indent=2))
-            else:
-                print ("Role tree already exists")
+            # save role tree to file
+            with open(file_path, "w") as f:
+                f.write(json.dumps(role_tree, indent=2))
 
             # discover child urls
             for a in page.locator("a").all():
