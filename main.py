@@ -4,9 +4,21 @@ import re
 import os
 import json
 
+### BEGIN INPUTS ###
+HOME_PAGE = "https://katalon.com"
+MAX_NUM_PAGES = 100
+### END INPUTS ###
+
+with open("bundle.js", "r") as f:
+    playw_css_script = f.read()
+
+with open("test.js", "r") as f:
+    role_tree_script = f.read()
+
 def preprocess_href(href, home_page):
+    # remove trailing slash from home page
+    home_page = re.sub(r'/+$', '', home_page)
     # turn relative urls into absolute urls
-    home_page = re.sub(r'/+$', '', home_page) # remove trailing slash
     if href.startswith("/"):
         href = home_page + href
     # remove query parameters
@@ -16,40 +28,27 @@ def preprocess_href(href, home_page):
     href = re.sub(r'/+$', '', href)
     return href
 
-with open("bundle.js", "r") as f:
-    playw_css_script = f.read()
-
-with open("test.js", "r") as f:
-    role_tree_script = f.read()
-
-print ("bundle.js script:", playw_css_script[:100])
-print ("test.js script", role_tree_script[:100])
-
 with sync_playwright() as p:
     browser = p.chromium.launch()
     page = browser.new_page()
 
-    ### BEGIN INPUTS ###
-    home_page = "https://katalon.com"
-    max_num_pages = 100
-    ### END INPUTS ###
-
-    # hardcode for Katalon.com: go to home page and accept cookies
-    page.goto(home_page, wait_until="networkidle")
+    ### BEGIN HARDCODE ###
+    # HARDCODE only for Katalon.com: go to home page and accept cookies
+    page.goto(HOME_PAGE, wait_until="networkidle")
     page.get_by_role("button", name="Accept All Cookies").click()
+    ### END HARDCODE ###
 
     discovered_urls = set()
     num_visited = 0
     q = queue.Queue()
 
-    q.put(home_page)
-    discovered_urls.add(home_page)
+    q.put(HOME_PAGE)
+    discovered_urls.add(HOME_PAGE)
 
-    while not q.empty() and num_visited < max_num_pages:
+    while not q.empty() and num_visited < MAX_NUM_PAGES:
         try:
             url = q.get()
             num_visited += 1
-
             print (num_visited)
             print (url)
         
@@ -58,7 +57,7 @@ with sync_playwright() as p:
             dir_path = re.sub(r'/+$', '', dir_path) # remove trailing slash
             file_path = f"output/{dir_path}/role_tree.json"
             
-            # if role tree is not saved, go to page and get role tree
+            # if role tree has never been saved, go to page and get role tree
             if not os.path.exists(file_path):
                 print ("Going to page")
                 page.goto(url, wait_until="networkidle")
@@ -79,8 +78,8 @@ with sync_playwright() as p:
             for a in page.locator("a").all():
                 href = a.get_attribute("href")
                 if href is not None:
-                    href = preprocess_href(href, home_page)
-                    if href.startswith(home_page) and href not in discovered_urls:
+                    href = preprocess_href(href, HOME_PAGE)
+                    if href.startswith(HOME_PAGE) and href not in discovered_urls:
                         discovered_urls.add(href)
                         q.put(href)
         except Exception as e:
