@@ -28,36 +28,52 @@ print ("test.js script", role_tree_script[:100])
 with sync_playwright() as p:
     browser = p.chromium.launch()
     page = browser.new_page()
-    home_page = "https://kobu.co"
+
+    ### BEGIN INPUTS ###
+    home_page = "https://katalon.com"
+    max_num_pages = 100
+    ### END INPUTS ###
+
+    # hardcode for Katalon.com: go to home page and accept cookies
+    page.goto(home_page, wait_until="networkidle")
+    page.get_by_role("button", name="Accept All Cookies").click()
 
     discovered_urls = set()
     num_visited = 0
     q = queue.Queue()
 
     q.put(home_page)
-
     discovered_urls.add(home_page)
-    while not q.empty() and num_visited < 3:
+
+    while not q.empty() and num_visited < max_num_pages:
         try:
             url = q.get()
-            print (url)
-
-            print ("Going to page")
-            page.goto(url, wait_until="networkidle")
-
             num_visited += 1
 
-            # get role tree
-            page.add_script_tag(content=playw_css_script)
-            print ("Getting role tree")
-            role_tree = page.evaluate(role_tree_script + "getRoleTree();")
-            
-            # write role tree to file
+            print (num_visited)
+            print (url)
+        
+            # file path to save role tree
             dir_path = re.sub(r'^https?://', '', url) # remove protocol
             dir_path = re.sub(r'/+$', '', dir_path) # remove trailing slash
-            os.makedirs(os.path.join("output", dir_path), exist_ok=True)
-            with open(f"output/{dir_path}/role_tree.json", "w") as f:
-                f.write(json.dumps(role_tree, indent=2))
+            file_path = f"output/{dir_path}/role_tree.json"
+            
+            # if role tree is not saved, go to page and get role tree
+            if not os.path.exists(file_path):
+                print ("Going to page")
+                page.goto(url, wait_until="networkidle")
+
+                # get role tree
+                page.add_script_tag(content=playw_css_script)
+                print ("Getting role tree")
+                role_tree = page.evaluate(role_tree_script + "getRoleTree();")
+            
+                # write role tree to file
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, "w") as f:
+                    f.write(json.dumps(role_tree, indent=2))
+            else:
+                print ("Role tree already exists")
 
             # discover child urls
             for a in page.locator("a").all():
