@@ -28,7 +28,7 @@ def get_absolute_href(href, domain):
     return href
 
 with sync_playwright() as p:
-    browser = p.chromium.launch()
+    browser = p.chromium.launch(headless=False)
     page = browser.new_page()
 
     # # HARDCODE only for Katalon.com: go to home page and accept cookies before crawling
@@ -78,7 +78,7 @@ with sync_playwright() as p:
                 href = a.get_attribute("href")
                 if href is not None:
                     href = get_absolute_href(href, domain)
-                    if href not in discovered_urls:
+                    if href.startswith("http") and href not in discovered_urls:
                         discovered_urls.add(href)
                         q.put(href)
         except Exception as e:
