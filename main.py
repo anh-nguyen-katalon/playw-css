@@ -5,7 +5,8 @@ import os
 import json
 
 ### BEGIN INPUTS ###
-HOME_PAGE = "https://katalon.com"
+# HOME_PAGE = "https://katalon.com"
+HOME_PAGE = "https://testops.katalon.io"
 MAX_NUM_PAGES = 100
 ### END INPUTS ###
 
@@ -15,15 +16,13 @@ with open("bundle.js", "r") as f:
 with open("test.js", "r") as f:
     role_tree_script = f.read()
 
-def preprocess_href(href, home_page):
-    # remove trailing slash from home page
-    home_page = re.sub(r'/+$', '', home_page)
+def get_absolute_href(href, domain):
+    # remove trailing slash from domain
+    domain = re.sub(r'/+$', '', domain)
     # turn relative urls into absolute urls
     if href.startswith("/"):
-        href = home_page + href
-    # remove query parameters
-    query_index = href.find("?")
-    href = href[:query_index] if query_index != -1 else href
+        href = domain + href
+
     # remove trailing slash
     href = re.sub(r'/+$', '', href)
     return href
@@ -54,6 +53,10 @@ with sync_playwright() as p:
             print ("Going to page")
             page.goto(url, wait_until="networkidle")
 
+            # get the current url
+            url = page.url
+            discovered_urls.add(url)
+
             # get role tree
             page.add_script_tag(content=playw_css_script)
             print ("Getting role tree")
@@ -70,11 +73,12 @@ with sync_playwright() as p:
                 f.write(json.dumps(role_tree, indent=2))
 
             # discover child urls
+            domain = re.search(r'https?://[^/]+', url).group(0)
             for a in page.locator("a").all():
                 href = a.get_attribute("href")
                 if href is not None:
-                    href = preprocess_href(href, HOME_PAGE)
-                    if href.startswith(HOME_PAGE) and href not in discovered_urls:
+                    href = get_absolute_href(href, domain)
+                    if href not in discovered_urls:
                         discovered_urls.add(href)
                         q.put(href)
         except Exception as e:
